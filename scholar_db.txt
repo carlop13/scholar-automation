@@ -1,0 +1,15 @@
+create database scholar_db;
+
+use scholar_db;
+
+create table articles (
+    id int auto_increment primary key,
+    researcher_name varchar(255) not null,
+    title text not null,
+    authors text,
+    publication_info text,
+    abstract_summary text,
+    cited_by int,
+    source_api varchar(255) default 'Google Scholar',
+    registration_date datetime not null default current_timestamp
+);

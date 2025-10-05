@@ -3,6 +3,7 @@ package org.example.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.model.Publication;
+import org.example.persistence.DatabaseManager;
 import org.example.view.ConsoleView;
 import java.io.IOException;
 import java.net.URI;
@@ -22,20 +23,32 @@ public class ScholarController {
 
     private final ConsoleView view;
     private final String apiKey;
+    private final DatabaseManager dbManager;
     private final HttpClient client;
     private final ObjectMapper mapper;
 
     public ScholarController(ConsoleView view, String apiKey) {
         this.view = view;
         this.apiKey = apiKey;
+        this.dbManager = new DatabaseManager();
         this.client = HttpClient.newHttpClient();
         this.mapper = new ObjectMapper();
     }
 
-    public void findAndDisplayPublications(String authorName) {
+    public void findAndPersistPublications(String authorName) {
         try {
+            //1. Get posts from the API
             List<Publication> publications = findAuthorPublications(authorName);
             view.displayPublications(authorName, publications);
+
+            // 2. Save the first 3 posts to the database
+            if (publications != null && !publications.isEmpty()) {
+                System.out.println("\n--- Storing top 3 publications in the database ---");
+                publications.stream()
+                        .limit(3) // "3 ARTICLES"
+                        .forEach(pub -> dbManager.insertPublication(pub, authorName));
+            }
+
         } catch (IOException | InterruptedException e) {
             view.displayError("An unexpected error occurred: " + e.getMessage());
         }
